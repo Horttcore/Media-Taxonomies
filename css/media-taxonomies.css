@@ -1,0 +1,42 @@
+.media-terms {
+	background: #fff;
+	border: 1px solid #dfdfdf;
+	border-radius: 3px;
+	max-height: 145px;
+	overflow: auto;
+	padding: 6px 8px;
+}
+
+	.media-terms label {
+		display: block;
+		margin: 0 0 3px;
+	}
+
+		.media-terms input[type="checkbox"] {
+			width: auto;
+		}
+
+	.media-terms ul ul {
+		margin: 0 0 0 15px;
+	}
+
+
+.media-save-terms {
+	position: relative;
+}
+
+	.media-save-terms:before {
+		background: url( '../images/saving.gif ') no-repeat #fff;
+		content: '';
+		display: block;
+		height: 16px;
+		position: absolute;
+		right: 5px;
+		top: 5px;
+		width: 16px
+	}
+
+	.media-save-terms label {
+		opacity: .5
+	}
+
