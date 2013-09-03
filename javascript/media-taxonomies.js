@@ -20,10 +20,10 @@ jQuery(document).ready(function(){
 
 
 	/* Save taxonomy */
-	jQuery('html').delegate( '.media-term input', 'change', function(){
+	jQuery('html').delegate( '.media-terms input', 'change', function(){
 
 		var obj = jQuery(this),
-			container = obj.parent().parent(),
+			container = jQuery('.media-terms'),
 			row = container.parent(),
 			data = {
 				action: 'save-media-terms',

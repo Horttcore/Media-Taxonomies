@@ -187,6 +187,7 @@ class Media_Taxonomies
 			'query_var' => TRUE,
 			'rewrite' => array( 'slug' => _x( 'media-category', 'Category Slug' ) ),
 			'show_admin_column' => TRUE,
+			'update_count_callback' => '_update_generic_term_count',
 		));
 
 	} // end register_taxonomy;
@@ -218,9 +219,7 @@ class Media_Taxonomies
 					'orderby' => 'name',
 					'selected' => ( isset( $wp_query->query[$taxonomyname] ) ? $wp_query->query[$taxonomyname] : '' ),
 					'hierarchical' => TRUE,
-					'depth' => 10,
-					'show_count' => FALSE,
-					'hide_empty' => FALSE,
+					'hide_empty' => TRUE,
 				) );
 
 			endforeach;
@@ -248,8 +247,8 @@ class Media_Taxonomies
 
 		$term_ids = array_map( 'intval', $_REQUEST['term_ids'] );
 
-		$response = wp_set_object_terms( $post_id, $term_ids, sanitize_text_field( $_REQUEST['taxonomy'] ) );
-		# die( '<pre>' . print_r( $response, TRUE ) . '</pre>' );
+		$response = wp_set_post_terms( $post_id, $term_ids, sanitize_text_field( $_REQUEST['taxonomy'] ) );
+		wp_update_term_count_now( $term_ids, sanitize_text_field( $_REQUEST['taxonomy'] ) );
 
 	} // end save_media_terms
 
