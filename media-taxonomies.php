@@ -3,7 +3,7 @@
 Plugin Name: Media Taxonomies
 Plugin URI: http://horttcore.de
 Description: Taxononmies for media files
-Version: 0.9
+Version: 0.9.1
 Author: Ralf Hortt
 Author URI: http://horttcore.de
 License: GPL2
@@ -27,16 +27,19 @@ class Media_Taxonomies
 	 * Constructor
 	 *
 	 * @access public
-	 * @since v1.0
+	 * @since v0.9
 	 * @author Ralf Hortt
 	 */
 	public function __construct()
 	{
+
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_assets' ) );
+		add_action( 'admin_head', array( $this, 'admin_head' ) );
 		add_filter( 'attachment_fields_to_edit', array( $this, 'attachment_fields_to_edit' ), 10, 2 );
 		add_action( 'init', array( $this, 'register_taxonomy' ) );
 		add_filter( 'manage_edit-attachment_sortable_columns', array( $this, 'manage_edit_attachment_sortable_columns' ) );
 		add_filter( 'parse_query', array( $this, 'parse_query' ) );
+		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ), 0, 1 );
 		add_action( 'restrict_manage_posts', array( $this, 'restrict_manage_posts' ) );
 		add_action( 'wp_ajax_save-media-terms', array( $this, 'save_media_terms' ), 0, 1 );
 		load_plugin_textdomain( 'media-taxonomies', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
@@ -49,14 +52,64 @@ class Media_Taxonomies
 	 * Enqueue admin scripts and styles
 	 *
 	 * @access public
-	 * @since v1.0
+	 * @since v0.9
 	 * @author Ralf Hortt
 	 */
 	public function admin_enqueue_assets()
 	{
+
 		wp_enqueue_script( 'media-taxonomies', plugins_url( 'javascript/media-taxonomies.js', __FILE__ ), array( 'jquery' ) );
 		wp_enqueue_style( 'media-taxonomies', plugins_url( 'css/media-taxonomies.css', __FILE__ ) );
+
 	} // end admin_enqueue_assets
+
+
+
+	/**
+	 * Add taxonomy information
+	 *
+	 * @access public
+	 * @since v0.9
+	 * @author Ralf Hortt
+	 */
+	public function admin_head()
+	{
+
+		$taxonomies = apply_filters( 'media-taxonomies', get_object_taxonomies( 'attachment', 'objects' ) );
+
+		if ( !$taxonomies )
+			return;
+
+		$attachment_taxonomies = $attachment_terms = array();
+
+		foreach ( $taxonomies as $taxonomyname => $taxonomy ) :
+			$attachment_taxonomies[$taxonomy->name] = $taxonomy->labels->name;
+
+			$terms = get_terms( $taxonomy->name, array(
+				'orderby'       => 'name',
+				'order'         => 'ASC',
+				'hide_empty'    => true,
+			) );
+
+			if ( !$terms )
+				break;
+
+			$attachment_terms[ $taxonomy->name ][] = array( 'id' => 0, 'label' => $taxonomy->labels->name, 'slug' => '' );
+
+			foreach ( $terms as $term )
+				$attachment_terms[ $taxonomy->name ][] = array( 'id' => $term->term_id, 'label' => $term->name, 'slug' => $term->slug );
+
+		endforeach;
+
+
+		?>
+		<script type="text/javascript">
+			var mediaTaxonomies = <?php echo json_encode( $attachment_taxonomies ) ?>,
+				mediaTerms = <?php echo json_encode( $attachment_terms ) ?>;
+		</script>
+		<?php
+
+	} // end admin_head
 
 
 
@@ -67,7 +120,7 @@ class Media_Taxonomies
 	 * @param array $fields Fields
 	 * @param obj $post Post obj
 	 * @return array Fields
-	 * @since v1.0
+	 * @since v0.9
 	 * @author Ralf Hortt
 	 */
 	public function attachment_fields_to_edit( $fields, $post )
@@ -106,7 +159,9 @@ class Media_Taxonomies
 	/**
 	* Creates or returns an instance of this class.
 	*
-	* @return  Foo A single instance of this class.
+	* @access public
+	* @return A single instance of this class.
+	* @since v0.9
 	*/
 	public static function get_instance() {
 
@@ -123,13 +178,14 @@ class Media_Taxonomies
 	 * Custom post type filtering
 	 *
 	 * @access public
+	 * @since v0.9
 	 * @param obj $query WP_Query object
 	 * @uses get_term_by
-	 * @return void
 	 * @author Ralf Hortt
 	 **/
 	public function parse_query( $query )
 	{
+
 		global $pagenow;
 
 		if ( $pagenow != 'upload.php' )
@@ -158,14 +214,45 @@ class Media_Taxonomies
 
 	/**
 	 *
-	 * CUSTOM TAXONOMY
+	 * Filter attachments
 	 *
 	 * @access public
-	 * @return void
+	 * @since v0.9.1
+	 * @author Ralf Hortt
+	 */
+	public function pre_get_posts( $query )
+	{
+		if ( !isset($_REQUEST['query']['filterSource']) || 'filter-media-taxonomies' != $_REQUEST['query']['filterSource'] )
+			return;
+
+		$taxonomies = apply_filters( 'media-taxonomies', get_object_taxonomies( 'attachment', 'objects' ) );
+
+		if ( !$taxonomies )
+			return;
+
+		foreach ( $taxonomies as $taxonomyname => $taxonomy ) :
+
+			if ( isset( $_REQUEST['query'][$taxonomyname] ) && $_REQUEST['query'][$taxonomyname]['term_slug'] )
+				$query->set( $taxonomyname, $_REQUEST['query'][$taxonomyname]['term_slug'] );
+
+		endforeach;
+
+
+	} // end pre_get_posts
+
+
+
+	/**
+	 *
+	 * Register taxonomy
+	 *
+	 * @access public
+	 * @since v0.9
 	 * @author Ralf Hortt
 	 */
 	public function register_taxonomy()
 	{
+
 		$labels = array(
 			'name' => _x( 'Categories', 'taxonomy general name' ),
 			'singular_name' => _x( 'Category', 'taxonomy singular name' ),
@@ -190,6 +277,8 @@ class Media_Taxonomies
 			'update_count_callback' => '_update_generic_term_count',
 		));
 
+		register_taxonomy_for_object_type( 'post_tag', 'attachment' );
+
 	} // end register_taxonomy;
 
 
@@ -198,7 +287,7 @@ class Media_Taxonomies
 	 * Add custom filters in attachment listing
 	 *
 	 * @access public
-	 * @return void
+	 * @since v0.9
 	 * @author Ralf Hortt
 	 **/
 	public function restrict_manage_posts()
@@ -234,7 +323,7 @@ class Media_Taxonomies
 	 * Save media terms
 	 *
 	 * @todo security nonce
-	 * @since v1.0
+	 * @since v0.9
 	 * @author Ralf Hortt
 	 */
 	public function save_media_terms()
@@ -260,7 +349,7 @@ class Media_Taxonomies
 	 * @access private
 	 * @param obj $taxonomy Taxonomy
 	 * @return str HTML output
-	 * @since v1.0
+	 * @since v0.9
 	 * @author Ralf Hortt
 	 */
 	private function terms_checkboxes( $taxonomy, $post_id )
@@ -292,7 +381,6 @@ class Media_Taxonomies
 		$output .= '</ul>';
 		$output .= '</div>';
 
-
 		return apply_filters( 'media-checkboxes', $output, $taxonomy, $terms );
 
 	} // end terms_checkboxes
@@ -300,5 +388,7 @@ class Media_Taxonomies
 
 
 }
+
+
 
 Media_Taxonomies::get_instance();
