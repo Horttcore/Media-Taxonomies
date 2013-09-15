@@ -1,0 +1,155 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Media Taxonomies v1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2013-09-15 16:27:14+0000\n"
+"Last-Translator: horttcore <me@horttcore.de>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: CSL v1.x\n"
+"X-Poedit-Language: German\n"
+"X-Poedit-Country: GERMANY\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-KeywordsList: __;_e;__ngettext:1,2;_n:1,2;__ngettext_noop:1,2;_n_noop:1,2;_c,_nc:4c,1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;_nx_noop:4c,1,2;\n"
+"X-Poedit-Basepath: \n"
+"X-Poedit-Bookmarks: \n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Textdomain-Support: yes"
+
+#: media-taxonomies.php:223
+#@ default
+msgctxt "taxonomy general name"
+msgid "Categories"
+msgstr ""
+
+#: media-taxonomies.php:224
+#@ default
+msgctxt "taxonomy singular name"
+msgid "Category"
+msgstr ""
+
+#: media-taxonomies.php:225
+#@ default
+msgid "Search Categories"
+msgstr ""
+
+#: media-taxonomies.php:226
+#@ default
+msgid "All Categories"
+msgstr ""
+
+#: media-taxonomies.php:227
+#@ default
+msgid "Parent Category"
+msgstr ""
+
+#: media-taxonomies.php:228
+#@ default
+msgid "Parent Category:"
+msgstr ""
+
+#: media-taxonomies.php:229
+#@ default
+msgid "Edit Category"
+msgstr ""
+
+#: media-taxonomies.php:230
+#@ default
+msgid "Update Category"
+msgstr ""
+
+#: media-taxonomies.php:231
+#@ default
+msgid "Add New Category"
+msgstr ""
+
+#: media-taxonomies.php:232
+#@ default
+msgid "New Category Name"
+msgstr ""
+
+#: media-taxonomies.php:233
+#@ default
+msgid "Categories"
+msgstr ""
+
+#: media-taxonomies.php:237
+#@ media-taxonomies
+msgctxt "Category Slug"
+msgid "media-category"
+msgstr "medien-kategorie"
+
+#: media-taxonomies.php:245
+#@ default
+msgctxt "taxonomy general name"
+msgid "Tags"
+msgstr ""
+
+#: media-taxonomies.php:246
+#@ default
+msgctxt "taxonomy singular name"
+msgid "Tag"
+msgstr ""
+
+#: media-taxonomies.php:247
+#@ default
+msgid "Search Tags"
+msgstr ""
+
+#: media-taxonomies.php:248
+#@ default
+msgid "All Tags"
+msgstr ""
+
+#: media-taxonomies.php:249
+#@ default
+msgid "Parent Tag"
+msgstr ""
+
+#: media-taxonomies.php:250
+#@ default
+msgid "Parent Tag:"
+msgstr ""
+
+#: media-taxonomies.php:251
+#@ default
+msgid "Edit Tag"
+msgstr ""
+
+#: media-taxonomies.php:252
+#@ default
+msgid "Update Tag"
+msgstr ""
+
+#: media-taxonomies.php:253
+#@ default
+msgid "Add New Tag"
+msgstr ""
+
+#: media-taxonomies.php:254
+#@ default
+msgid "New Tag Name"
+msgstr ""
+
+#: media-taxonomies.php:255
+#@ default
+msgid "Tags"
+msgstr ""
+
+#: media-taxonomies.php:259
+#@ media-taxonomies
+msgctxt "Tag Slug"
+msgid "media-tag"
+msgstr "medien-schlagwort"
+
+#: media-taxonomies.php:287
+#, php-format
+#@ media-taxonomies
+msgctxt "%1$s = plural, %2$s = singular"
+msgid "View all %s"
+msgstr "Alle %s"
+

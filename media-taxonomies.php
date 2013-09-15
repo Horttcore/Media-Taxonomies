@@ -3,7 +3,7 @@
 Plugin Name: Media Taxonomies
 Plugin URI: http://horttcore.de
 Description: Taxononmies for media files
-Version: 0.9.1
+Version: 1.0
 Author: Ralf Hortt
 Author URI: http://horttcore.de
 License: GPL2
@@ -38,7 +38,6 @@ class Media_Taxonomies
 		add_filter( 'attachment_fields_to_edit', array( $this, 'attachment_fields_to_edit' ), 10, 2 );
 		add_action( 'init', array( $this, 'register_taxonomy' ) );
 		add_filter( 'manage_edit-attachment_sortable_columns', array( $this, 'manage_edit_attachment_sortable_columns' ) );
-		add_filter( 'parse_query', array( $this, 'parse_query' ) );
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ), 0, 1 );
 		add_action( 'restrict_manage_posts', array( $this, 'restrict_manage_posts' ) );
 		add_action( 'wp_ajax_save-media-terms', array( $this, 'save_media_terms' ), 0, 1 );
@@ -175,46 +174,8 @@ class Media_Taxonomies
 
 
 	/**
-	 * Custom post type filtering
 	 *
-	 * @access public
-	 * @since v0.9
-	 * @param obj $query WP_Query object
-	 * @uses get_term_by
-	 * @author Ralf Hortt
-	 **/
-	public function parse_query( $query )
-	{
-
-		global $pagenow;
-
-		if ( $pagenow != 'upload.php' )
-			return;
-
-		$qv = &$query->query_vars;
-
-		$taxonomies = apply_filters( 'media-taxonomies', get_object_taxonomies( 'attachment', 'objects' ) );
-
-		if ( $taxonomies ) :
-
-			foreach ( $taxonomies as $taxonomyname => $taxonomy ) :
-
-				if ( isset( $qv[$taxonomyname] ) && is_numeric( $qv[$taxonomyname] ) ) :
-					$term = get_term_by('id',$qv[$taxonomyname],$taxonomyname);
-					$qv[$taxonomyname] = ($term ? $term->slug : '');
-				endif;
-
-			endforeach;
-
-		endif;
-
-	} // end parse_query
-
-
-
-	/**
-	 *
-	 * Filter attachments
+	 * Filter attachments in modal box
 	 *
 	 * @access public
 	 * @since v0.9.1
@@ -222,7 +183,7 @@ class Media_Taxonomies
 	 */
 	public function pre_get_posts( $query )
 	{
-		if ( !isset($_REQUEST['query']['filterSource']) || 'filter-media-taxonomies' != $_REQUEST['query']['filterSource'] )
+		if ( ( !isset($_REQUEST['query']['filterSource']) || 'filter-media-taxonomies' != $_REQUEST['query']['filterSource'] ) )
 			return;
 
 		$taxonomies = apply_filters( 'media-taxonomies', get_object_taxonomies( 'attachment', 'objects' ) );
@@ -232,11 +193,14 @@ class Media_Taxonomies
 
 		foreach ( $taxonomies as $taxonomyname => $taxonomy ) :
 
-			if ( isset( $_REQUEST['query'][$taxonomyname] ) && $_REQUEST['query'][$taxonomyname]['term_slug'] )
+			if ( isset( $_REQUEST['query'][$taxonomyname] ) && $_REQUEST['query'][$taxonomyname]['term_slug'] )	 :
 				$query->set( $taxonomyname, $_REQUEST['query'][$taxonomyname]['term_slug'] );
+			elseif ( isset( $_REQUEST[$taxonomyname] ) && is_numeric( $_REQUEST[$taxonomyname] ) && 0 != intval( $_REQUEST[$taxonomyname] ) ) :
+				$term = get_term_by( 'id', $_REQUEST[$taxonomyname], $taxonomyname );
+				set_query_var( $taxonomyname, $term->slug );
+			endif;
 
 		endforeach;
-
 
 	} // end pre_get_posts
 
@@ -253,31 +217,49 @@ class Media_Taxonomies
 	public function register_taxonomy()
 	{
 
-		$labels = array(
-			'name' => _x( 'Categories', 'taxonomy general name' ),
-			'singular_name' => _x( 'Category', 'taxonomy singular name' ),
-			'search_items' =>  __( 'Search Categories' ),
-			'all_items' => __( 'All Categories' ),
-			'parent_item' => __( 'Parent Category' ),
-			'parent_item_colon' => __( 'Parent Category:' ),
-			'edit_item' => __( 'Edit Category' ),
-			'update_item' => __( 'Update Category' ),
-			'add_new_item' => __( 'Add New Category' ),
-			'new_item_name' => __( 'New Category Name' ),
-			'menu_name' => __( 'Categories' ),
-		);
-
 		register_taxonomy( 'media-category', array( 'attachment' ), array(
 			'hierarchical' => TRUE,
-			'labels' => $labels,
+			'labels' => array(
+				'name' => _x( 'Categories', 'taxonomy general name' ),
+				'singular_name' => _x( 'Category', 'taxonomy singular name' ),
+				'search_items' =>  __( 'Search Categories' ),
+				'all_items' => __( 'All Categories' ),
+				'parent_item' => __( 'Parent Category' ),
+				'parent_item_colon' => __( 'Parent Category:' ),
+				'edit_item' => __( 'Edit Category' ),
+				'update_item' => __( 'Update Category' ),
+				'add_new_item' => __( 'Add New Category' ),
+				'new_item_name' => __( 'New Category Name' ),
+				'menu_name' => __( 'Categories' ),
+			),
 			'show_ui' => TRUE,
 			'query_var' => TRUE,
-			'rewrite' => array( 'slug' => _x( 'media-category', 'Category Slug' ) ),
+			'rewrite' => array( 'slug' => _x( 'media-category', 'Category Slug', 'media-taxonomies' ) ),
 			'show_admin_column' => TRUE,
 			'update_count_callback' => '_update_generic_term_count',
 		));
 
-		register_taxonomy_for_object_type( 'post_tag', 'attachment' );
+		register_taxonomy( 'media-tag', array( 'attachment' ), array(
+			'hierarchical' => FALSE,
+			'labels' => array(
+				'name' => _x( 'Tags', 'taxonomy general name' ),
+				'singular_name' => _x( 'Tag', 'taxonomy singular name' ),
+				'search_items' =>  __( 'Search Tags' ),
+				'all_items' => __( 'All Tags' ),
+				'parent_item' => __( 'Parent Tag' ),
+				'parent_item_colon' => __( 'Parent Tag:' ),
+				'edit_item' => __( 'Edit Tag' ),
+				'update_item' => __( 'Update Tag' ),
+				'add_new_item' => __( 'Add New Tag' ),
+				'new_item_name' => __( 'New Tag Name' ),
+				'menu_name' => __( 'Tags' ),
+			),
+			'show_ui' => TRUE,
+			'query_var' => TRUE,
+			'rewrite' => array( 'slug' => _x( 'media-tag', 'Tag Slug', 'media-taxonomies' ) ),
+			'show_admin_column' => TRUE,
+			'update_count_callback' => '_update_generic_term_count',
+		));
 
 	} // end register_taxonomy;
 
@@ -302,7 +284,7 @@ class Media_Taxonomies
 			foreach ( $taxonomies as $taxonomyname => $taxonomy ) :
 
 				wp_dropdown_categories( array(
-					'show_option_all' => sprintf( __( 'View all %s' ), $taxonomy->labels->name ),
+					'show_option_all' => sprintf( _x( 'View all %s', '%1$s = plural, %2$s = singular', 'media-taxonomies' ), $taxonomy->labels->name, $taxonomy->labels->singular_name ),
 					'taxonomy' => $taxonomyname,
 					'name' => $taxonomyname,
 					'orderby' => 'name',

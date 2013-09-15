@@ -1,3 +1,9 @@
+.media-toolbar-secondary select {
+	margin: 0 10px 0 0;
+}
+
+
+
 .media-terms {
 	background: #fff;
 	border: 1px solid #dfdfdf;

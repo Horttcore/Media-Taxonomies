@@ -21,60 +21,60 @@ jQuery(document).ready(function(){
 	/**
 	 * Extended Filters dropdown with taxonomy term selection values
 	 */
-	jQuery.each(mediaTaxonomies,function(key,label){
+	if ( media ) {
+		jQuery.each(mediaTaxonomies,function(key,label){
 
-		media.view.AttachmentFilters[key] = media.view.AttachmentFilters.extend({
-			className: key,
+			media.view.AttachmentFilters[key] = media.view.AttachmentFilters.extend({
+				className: key,
 
-			createFilters: function() {
-				var filters = {};
+				createFilters: function() {
+					var filters = {};
 
-				_.each( mediaTerms[key] || {}, function( term ) {
+					_.each( mediaTerms[key] || {}, function( term ) {
 
-					var query = {};
+						var query = {};
 
-					query[key] = {
-						taxonomy: key,
-						term_id: parseInt( term.id, 10 ),
-						term_slug: term.slug
-					};
+						query[key] = {
+							taxonomy: key,
+							term_id: parseInt( term.id, 10 ),
+							term_slug: term.slug
+						};
 
-					filters[ term.slug ] = {
-						text: term.label,
-						props: query
-					};
-				});
+						filters[ term.slug ] = {
+							text: term.label,
+							props: query
+						};
+					});
 
-				this.filters = filters;
-			}
+					this.filters = filters;
+				}
 
+
+			});
+
+			/**
+			 * Replace the media-toolbar with our own
+			 */
+			var myDrop = media.view.AttachmentsBrowser;
+
+			media.view.AttachmentsBrowser = media.view.AttachmentsBrowser.extend({
+				createToolbar: function() {
+
+					media.model.Query.defaultArgs.filterSource = 'filter-media-taxonomies';
+
+					myDrop.prototype.createToolbar.apply(this,arguments);
+
+					this.toolbar.set( key, new media.view.AttachmentFilters[key]({
+						controller: this.controller,
+						model:      this.collection.props,
+						priority:   -80
+						}).render()
+					);
+				}
+			});
 
 		});
-
-		/**
-		 * Replace the media-toolbar with our own
-		 */
-		media.view.AttachmentsBrowser = media.view.AttachmentsBrowser.extend({
-			createToolbar: function() {
-
-				media.model.Query.defaultArgs.filterSource = 'filter-media-taxonomies';
-
-				this.toolbar = new media.view.Toolbar({
-					controller: this.controller
-				});
-
-				this.views.add( this.toolbar );
-
-				this.toolbar.set( key, new media.view.AttachmentFilters[key]({
-					controller: this.controller,
-					model:      this.collection.props,
-					priority:   -80
-				}).render() );
-			}
-		});
-
-	});
-
+	}
 
 
 	/* Save taxonomy */

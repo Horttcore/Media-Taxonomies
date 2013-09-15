@@ -25,7 +25,16 @@ Visit for more information http://codex.wordpress.org/Function_Reference/registe
 
 Ok, use the `media-taxonomies` hook to remove your taxonomy from the list
 
+## Known Bugs
+
+* Registering a core taxonomy via `register_taxonomy_for_object_type( 'post_tag', 'attachment' )` won't work
+
 ## Changelog
+
+### 1.0
+
+* Added integrated modal filter - props Wyck
+* Added german language file
 
 ### 0.9.1
 
