@@ -1,7 +1,8 @@
 Media-Taxonomies
 ================
 
-WordPress taxonomies for media files
+WordPress taxonomies for media files.
+Plugin ships with media-category and media-tag taxonomy
 
 ## Installation
 
@@ -30,6 +31,10 @@ Ok, use the `media-taxonomies` hook to remove your taxonomy from the list
 * Registering a core taxonomy via `register_taxonomy_for_object_type( 'post_tag', 'attachment' )` won't work
 
 ## Changelog
+
+### 1.1
+
+* Bugfix: Media overview filter did not work
 
 ### 1.0
 

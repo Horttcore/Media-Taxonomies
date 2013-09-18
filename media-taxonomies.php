@@ -3,7 +3,7 @@
 Plugin Name: Media Taxonomies
 Plugin URI: http://horttcore.de
 Description: Taxononmies for media files
-Version: 1.0
+Version: 1.1
 Author: Ralf Hortt
 Author URI: http://horttcore.de
 License: GPL2
@@ -183,7 +183,7 @@ class Media_Taxonomies
 	 */
 	public function pre_get_posts( $query )
 	{
-		if ( ( !isset($_REQUEST['query']['filterSource']) || 'filter-media-taxonomies' != $_REQUEST['query']['filterSource'] ) )
+		if ( 'attachment' != get_query_var( 'post_type' ) )
 			return;
 
 		$taxonomies = apply_filters( 'media-taxonomies', get_object_taxonomies( 'attachment', 'objects' ) );
@@ -328,13 +328,13 @@ class Media_Taxonomies
 	/**
 	 * Create a terms box
 	 *
-	 * @access private
+	 * @access protected
 	 * @param obj $taxonomy Taxonomy
 	 * @return str HTML output
 	 * @since v0.9
 	 * @author Ralf Hortt
 	 */
-	private function terms_checkboxes( $taxonomy, $post_id )
+	protected function terms_checkboxes( $taxonomy, $post_id )
 	{
 
 		$terms = get_terms( $taxonomy->name, array(
