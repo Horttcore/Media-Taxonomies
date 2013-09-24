@@ -183,7 +183,7 @@ class Media_Taxonomies
 	 */
 	public function pre_get_posts( $query )
 	{
-		if ( 'attachment' != get_query_var( 'post_type' ) )
+		if ( 'attachment' != $query->query_vars['post_type'] )
 			return;
 
 		$taxonomies = apply_filters( 'media-taxonomies', get_object_taxonomies( 'attachment', 'objects' ) );

@@ -32,6 +32,10 @@ Ok, use the `media-taxonomies` hook to remove your taxonomy from the list
 
 ## Changelog
 
+### 1.2
+
+* Bugfix: Media modal filter did not work, broke due last versions fix
+
 ### 1.1
 
 * Bugfix: Media overview filter did not work
