@@ -3,7 +3,7 @@
 Plugin Name: Media Taxonomies
 Plugin URI: http://horttcore.de
 Description: Taxononmies for media files
-Version: 1.1
+Version: 1.2
 Author: Ralf Hortt
 Author URI: http://horttcore.de
 License: GPL2
