@@ -1,4 +1,4 @@
-Media-Taxonomies
+Media Taxonomies
 ================
 
 WordPress taxonomies for media files.
@@ -20,7 +20,7 @@ I'll try to make it possible in release v1.0
 
 This might be a failure in your register_taxanomy function.
 You have to set `update_count_callback` to `_update_generic_term_count` in the taxonomy registration
-Visit for more information http://codex.wordpress.org/Function_Reference/register_taxonomy
+Visit the [codex](http://codex.wordpress.org/Function_Reference/register_taxonomy) for more information
 
 ### I added another taxonomy for attachments, but don't want to use the features of this plugin.
 
