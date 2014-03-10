@@ -1,7 +1,6 @@
-.media-toolbar-secondary select {
-	margin: 0 10px 0 0;
+.wp-admin .media-toolbar-secondary select {
+	margin: 11px 16px 0 0;
 }
-
 
 
 .media-terms {
@@ -18,8 +17,12 @@
 		margin: 0 0 3px;
 	}
 
-		.media-terms input[type="checkbox"] {
-			width: auto;
+		.media-sidebar .media-terms input[type="checkbox"] {
+			height: 12px;
+			width: 12px;
+			min-width: 12px;
+			padding: 2px;
+			margin: -4px 3px -1px 0;
 		}
 
 	.media-terms ul ul {
