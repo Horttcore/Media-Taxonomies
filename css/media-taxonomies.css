@@ -1,8 +1,10 @@
-.media-toolbar-secondary select {
-	margin: 0 10px 0 0;
+.wp-admin .media-toolbar-secondary select {
+	margin: 11px 10px 0 0;
 }
 
-
+.media-term-section {
+	margin: 0 0 20px;
+}
 
 .media-terms {
 	background: #fff;
@@ -13,19 +15,29 @@
 	padding: 6px 8px;
 }
 
-	.media-terms label {
+	.wp-admin .media-terms label {
 		display: block;
-		margin: 0 0 3px;
 	}
 
-		.media-terms input[type="checkbox"] {
+		.wp-admin .media-terms input[type="checkbox"] {
+			margin: 0 5px 0 0;
+			position: relative;
+			top: -1px;
 			width: auto;
 		}
 
 	.media-terms ul ul {
-		margin: 0 0 0 15px;
+		padding: 10px 0 5px 10px;
 	}
 
+	.media-terms ul li:last-child {
+		margin: 0;
+	}
+
+
+.add-new-term {
+	display: none;
+}
 
 .media-save-terms {
 	position: relative;
@@ -45,4 +57,18 @@
 	.media-save-terms label {
 		opacity: .5
 	}
+
+/* Add new media term */
+.toggle-add-media-term {
+	display: inline-block;
+	margin: 5px 0;
+}
+
+.toggle-add-media-term:before {
+	content: '+ ';
+}
+
+.add-new-term {
+	margin: 0 0 5px;
+}
 

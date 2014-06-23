@@ -3,7 +3,7 @@
 Plugin Name: Media Taxonomies
 Plugin URI: http://horttcore.de
 Description: Taxononmies for media files
-Version: 1.1
+Version: 1.2.2
 Author: Ralf Hortt
 Author URI: http://horttcore.de
 License: GPL2
@@ -41,9 +41,65 @@ class Media_Taxonomies
 		add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ), 0, 1 );
 		add_action( 'restrict_manage_posts', array( $this, 'restrict_manage_posts' ) );
 		add_action( 'wp_ajax_save-media-terms', array( $this, 'save_media_terms' ), 0, 1 );
+		add_action( 'wp_ajax_add-media-term', array( $this, 'add_media_term' ), 0, 1 );
 		load_plugin_textdomain( 'media-taxonomies', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 
 	} // end __construct
+
+
+
+	/**
+	 * Add media term
+	 * ajax callback
+	 *
+	 * @since v.1.3
+	 * @author Ralf Hortt
+	 **/
+	public function add_media_term()
+	{
+		$response = array();
+		$attachment_id = intval( $_REQUEST['attachment_id'] );
+		$taxonomy = get_taxonomy( sanitize_text_field( $_REQUEST['taxonomy'] ) );
+		$parent = ( intval( $_REQUEST['parent'] ) > 0 ) ? intval( $_REQUEST['parent'] ) : 0;
+
+		// Check if term already exists
+		$term = get_term_by( 'name', sanitize_text_field( $_REQUEST['term'] ), $taxonomy->name );
+
+		// No, so lets add it
+		if ( !$term ) :
+			$term = wp_insert_term( sanitize_text_field( $_REQUEST['term'] ), $taxonomy->name, array( 'parent' => $parent ) );
+			$term = get_term_by( 'id', $term['term_id'], $taxonomy->name );
+		endif;
+
+		// Connect attachment with term
+		wp_set_object_terms( $attachment_id, $term->term_id, $taxonomy->name, TRUE );
+
+		$attachment_terms = wp_get_object_terms( $attachment_id, $taxonomy->name, array(
+			'fields' => 'ids'
+		));
+
+		ob_start();
+		wp_terms_checklist( 0, array(
+			'selected_cats'         => $attachment_terms,
+			'taxonomy'              => $taxonomy->name,
+			'checked_ontop'         => FALSE
+		));
+		$checklist = ob_get_contents();
+		ob_end_clean();
+
+		$response['checkboxes'] = $checklist;
+		$response['selectbox'] = wp_dropdown_categories( array(
+			'taxonomy' => $taxonomy->name,
+			'class' => 'parent-' . $taxonomy->name,
+			'id' => 'parent-' . $taxonomy->name,
+			'name' => 'parent-' . $taxonomy->name,
+			'show_option_none' => '- ' . $taxonomy->labels->parent_item . ' -',
+			'hide_empty' => FALSE,
+			'echo' => FALSE,
+		) );
+
+		die( json_encode( $response ) );
+	}
 
 
 
@@ -82,7 +138,6 @@ class Media_Taxonomies
 		$attachment_taxonomies = $attachment_terms = array();
 
 		foreach ( $taxonomies as $taxonomyname => $taxonomy ) :
-			$attachment_taxonomies[$taxonomy->name] = $taxonomy->labels->name;
 
 			$terms = get_terms( $taxonomy->name, array(
 				'orderby'       => 'name',
@@ -93,7 +148,8 @@ class Media_Taxonomies
 			if ( !$terms )
 				break;
 
-			$attachment_terms[ $taxonomy->name ][] = array( 'id' => 0, 'label' => $taxonomy->labels->name, 'slug' => '' );
+			$attachment_taxonomies[$taxonomy->name] = $taxonomy->labels->name;
+			$attachment_terms[ $taxonomy->name ][] = array( 'id' => 0, 'label' => __('All') . ' ' . $taxonomy->labels->name, 'slug' => '' );
 
 			foreach ( $terms as $term )
 				$attachment_terms[ $taxonomy->name ][] = array( 'id' => $term->term_id, 'label' => $term->name, 'slug' => $term->slug );
@@ -132,22 +188,21 @@ class Media_Taxonomies
 
 		$taxonomies = apply_filters( 'media-taxonomies', get_object_taxonomies( 'attachment', 'objects' ) );
 
-		if ( $taxonomies ) :
+		if ( !$taxonomies )
+			return $fields;
 
-			foreach ( $taxonomies as $taxonomyname => $taxonomy ) :
+		foreach ( $taxonomies as $taxonomyname => $taxonomy ) :
 
-				$fields[$taxonomyname] = array(
-					'label' => $taxonomy->labels->singular_name,
-					'input' => 'html',
-					'html' => $this->terms_checkboxes( $taxonomy, $post->ID ),
-					// 'value' => '',
-					// 'helps' => '',
-					'show_in_edit' => true,
-				);
+			$fields[$taxonomyname] = array(
+				'label' => $taxonomy->labels->singular_name,
+				'input' => 'html',
+				'html' => $this->terms_checkboxes( $taxonomy, $post->ID ),
+				// 'value' => '',
+				// 'helps' => '',
+				'show_in_edit' => true,
+			);
 
-			endforeach;
-
-		endif;
+		endforeach;
 
 		return $fields;
 
@@ -183,7 +238,7 @@ class Media_Taxonomies
 	 */
 	public function pre_get_posts( $query )
 	{
-		if ( 'attachment' != $query->query_vars['post_type'] )
+		if ( !isset( $query->query_vars['post_type'] ) || 'attachment' != $query->query_vars['post_type'] )
 			return;
 
 		$taxonomies = apply_filters( 'media-taxonomies', get_object_taxonomies( 'attachment', 'objects' ) );
@@ -197,7 +252,8 @@ class Media_Taxonomies
 				$query->set( $taxonomyname, $_REQUEST['query'][$taxonomyname]['term_slug'] );
 			elseif ( isset( $_REQUEST[$taxonomyname] ) && is_numeric( $_REQUEST[$taxonomyname] ) && 0 != intval( $_REQUEST[$taxonomyname] ) ) :
 				$term = get_term_by( 'id', $_REQUEST[$taxonomyname], $taxonomyname );
-				set_query_var( $taxonomyname, $term->slug );
+				if ( is_object( $term ) )
+					set_query_var( $taxonomyname, $term->slug );
 			endif;
 
 		endforeach;
@@ -279,23 +335,23 @@ class Media_Taxonomies
 
 		$taxonomies = apply_filters( 'media-taxonomies', get_object_taxonomies( 'attachment', 'objects' ) );
 
-		if ( $taxonomies ) :
+		if ( !$taxonomies )
+			return;
 
-			foreach ( $taxonomies as $taxonomyname => $taxonomy ) :
+		foreach ( $taxonomies as $taxonomyname => $taxonomy ) :
 
-				wp_dropdown_categories( array(
-					'show_option_all' => sprintf( _x( 'View all %s', '%1$s = plural, %2$s = singular', 'media-taxonomies' ), $taxonomy->labels->name, $taxonomy->labels->singular_name ),
-					'taxonomy' => $taxonomyname,
-					'name' => $taxonomyname,
-					'orderby' => 'name',
-					'selected' => ( isset( $wp_query->query[$taxonomyname] ) ? $wp_query->query[$taxonomyname] : '' ),
-					'hierarchical' => TRUE,
-					'hide_empty' => TRUE,
-				) );
+			wp_dropdown_categories( array(
+				'show_option_all' => sprintf( _x( 'View all %s', '%1$s = plural, %2$s = singular', 'media-taxonomies' ), $taxonomy->labels->name, $taxonomy->labels->singular_name ),
+				'taxonomy' => $taxonomyname,
+				'name' => $taxonomyname,
+				'orderby' => 'name',
+				'selected' => ( isset( $wp_query->query[$taxonomyname] ) ? $wp_query->query[$taxonomyname] : '' ),
+				'hierarchical' => TRUE,
+				'hide_empty' => TRUE,
+				'hide_if_empty' => TRUE,
+			) );
 
-			endforeach;
-
-		endif;
+		endforeach;
 
 	} // end restrict_manage_posts
 
@@ -337,31 +393,68 @@ class Media_Taxonomies
 	protected function terms_checkboxes( $taxonomy, $post_id )
 	{
 
+		if ( !is_object( $taxonomy ) ) :
+
+			$taxonomy = get_taxonomy( $taxonomy );
+
+		endif;
+
 		$terms = get_terms( $taxonomy->name, array(
 			'hide_empty' => FALSE,
 		));
-
-		if ( !$terms )
-			return apply_filters( 'media-checkboxes', '', $taxonomy, $terms );
 
 		$attachment_terms = wp_get_object_terms( $post_id, $taxonomy->name, array(
 			'fields' => 'ids'
 		));
 
-		$output = '<div class="media-terms" data-id="' . $post_id . '" data-taxonomy="' . $taxonomy->name . '">';
-		$output .= '<ul>';
-
 		ob_start();
-		wp_terms_checklist( 0, array(
-			'selected_cats'         => $attachment_terms,
-			'taxonomy'              => $taxonomy->name,
-			'checked_ontop'         => FALSE
-		));
-		$output .= ob_get_contents();
-		ob_end_clean();
 
-		$output .= '</ul>';
-		$output .= '</div>';
+		?>
+		<div class="media-term-section">
+
+			<div class="media-terms" data-id="<?php echo $post_id ?>" data-taxonomy="<?php echo $taxonomy->name ?>">
+
+				<ul>
+					<?php
+					wp_terms_checklist( 0, array(
+						'selected_cats'         => $attachment_terms,
+						'taxonomy'              => $taxonomy->name,
+						'checked_ontop'         => FALSE
+					));
+					?>
+				</ul>
+
+			</div><!-- .media-terms -->
+
+			<a href="#" class="toggle-add-media-term"><?php echo $taxonomy->labels->add_new_item ?></a>
+
+			<div class="add-new-term">
+
+				<input type="text" value="">
+
+				<?php
+				if ( 1 == $taxonomy->hierarchical ) :
+					wp_dropdown_categories( array(
+						'taxonomy' => $taxonomy->name,
+						'class' => 'parent-' . $taxonomy->name,
+						'id' => 'parent-' . $taxonomy->name,
+						'name' => 'parent-' . $taxonomy->name,
+						'show_option_none' => '- ' . $taxonomy->labels->parent_item . ' -',
+						'hide_empty' => FALSE,
+					) );
+				endif;
+				?>
+
+				<button class="button save-media-term" data-taxonomy="<?php echo $taxonomy->name ?>" data-id="<?php echo $post_id ?>"><?php echo $taxonomy->labels->add_new_item ?></button>
+
+			</div><!-- .add-new-term -->
+
+		</div><!-- .media-term-section -->
+
+		<?php
+
+		$output = ob_get_contents();
+		ob_end_clean();
 
 		return apply_filters( 'media-checkboxes', $output, $taxonomy, $terms );
 
@@ -370,7 +463,6 @@ class Media_Taxonomies
 
 
 }
-
 
 
 Media_Taxonomies::get_instance();
