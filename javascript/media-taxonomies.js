@@ -30,6 +30,13 @@ jQuery(document).ready(function(){
 				createFilters: function() {
 					var filters = {};
 
+					filters.all = {
+						text: mediaTaxonomies[key].all,
+						props: {},
+						priority: 10,
+					};
+					filters.all.props[key] = '';
+
 					_.each( mediaTerms[key] || {}, function( term ) {
 
 						var query = {};
@@ -133,9 +140,6 @@ jQuery(document).ready(function(){
 
 			obj.parents('.field').find('.media-terms ul:first').html( response.checkboxes );
 			obj.parents('.field').find('select').replaceWith( response.selectbox );
-
-			console.log( response );
-
 			termField.val('');
 
 		}, 'json' );

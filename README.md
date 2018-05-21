@@ -27,6 +27,10 @@ Ok, use the `media-taxonomies` hook to remove your taxonomy from the list
 
 ## Changelog
 
+### 1.3.1
+
+* Fix: Fix grid view filtering
+
 ### 1.3
 
 * Add new terms functionality
